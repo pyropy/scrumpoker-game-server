@@ -4,7 +4,6 @@ defmodule PlayerTest do
   
   doctest Scrumpoker.Player
 
-
   test "create new player" do
     result = Player.new("test")
     expected = %Player{name: "test"} 

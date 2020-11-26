@@ -43,7 +43,6 @@ defmodule Scrumpoker.Game do
       iex> player_with_vote = %Scrumpoker.Player{name: "test-player", vote: 3}
       iex> Scrumpoker.Game.add_player(game, player_with_vote)
       %Scrumpoker.Game{name: "test", players: [%Scrumpoker.Player{name: "test-player", vote: 3}]}
-
   """
   def add_player(%Game{players: players} = game, %Player{} = player) do
     case player_in_game(player, game) do
