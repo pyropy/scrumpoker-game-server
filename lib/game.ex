@@ -1,9 +1,10 @@
 defmodule Scrumpoker.Game do
+  @moduledoc """
+  # TODO Srdjan: Implement player leave
+  """
   @enforce_keys [:name]
   defstruct name: "", players: []
-
-  alias Scrumpoker.{Game, Player}
-
+    alias Scrumpoker.{Game, Player}
 
   @doc """
   Creates new Game instance with given name.
