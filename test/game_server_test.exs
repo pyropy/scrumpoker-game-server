@@ -6,7 +6,9 @@ defmodule GameServerTest do
     game = %Game{name: "test-game"}
     player = %Player{name: "test-player"}
     result = GameServer.handle_call({:player_join, player}, {}, game)
-    expected = {:reply, %Game{name: "test-game", players: [%Player{name: "test-player"}]}}
+    updated_game = %Game{name: "test-game", players: [%Player{name: "test-player"}]}
+
+    expected = {:reply, updated_game, updated_game}
     assert result == expected
   end
 end
