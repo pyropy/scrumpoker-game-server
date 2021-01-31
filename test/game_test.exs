@@ -5,13 +5,13 @@ defmodule GameTest do
 
   test "create new game" do
     result = Game.new("test")
-    expected = %Game{name: "test"} 
+    expected = %Game{id: "test"}
     assert result == expected
   end
 
   test "add player to game empty players list" do
-    player = %Player{name: "testko"}
-    game = %Game{name: "game-name"}
+    player = %Player{id: "testko"}
+    game = %Game{id: "game-id"}
     game = Game.add_player(game, player)
     result = game.players
     expected = [player]
@@ -19,9 +19,9 @@ defmodule GameTest do
   end
 
   test "add player to game populated layers list" do
-    player = %Player{name: "testko"}
-    player2 = %Player{name: "testko2"}
-    game = %Game{name: "game-name", players: [player]}
+    player = %Player{id: "testko"}
+    player2 = %Player{id: "testko2"}
+    game = %Game{id: "game-id", players: [player]}
     game = Game.add_player(game, player2)
     result = game.players
     expected = [player2, player]
@@ -29,9 +29,9 @@ defmodule GameTest do
   end
 
   test "add player to game, player already in players list" do
-    player = %Player{name: "testko"}
-    player2 = %Player{name: "testko2"}
-    game = %Game{name: "game-name", players: [player]}
+    player = %Player{id: "testko"}
+    player2 = %Player{id: "testko2"}
+    game = %Game{id: "game-id", players: [player]}
     game = Game.add_player(game, player2)
     game = Game.add_player(game, player2)
     result = game.players
