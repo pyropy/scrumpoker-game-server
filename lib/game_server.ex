@@ -5,25 +5,25 @@ defmodule Scrumpoker.GameServer do
   alias Scrumpoker.{Game, Player}
 
   def start_link({game_id})
-  when is_binary(game_id) do
+      when is_binary(game_id) do
     IO.puts(__MODULE__)
     game_id = String.to_atom(game_id)
     start_link({game_id})
   end
 
   def start_link({game_id})
-  when is_atom(game_id) do
-    GenServer.start_link(__MODULE__, {game_id}, id: game_id)
+      when is_atom(game_id) do
+    GenServer.start_link(__MODULE__, {game_id}, name: game_id)
   end
 
   def player_join(game_id, %Player{} = player)
-  when is_binary(game_id) do
+      when is_binary(game_id) do
     String.to_atom(game_id)
     |> player_join(player)
   end
 
   def player_join(game_id, %Player{} = player)
-  when is_atom(game_id) do
+      when is_atom(game_id) do
     GenServer.call(game_id, {:player_join, player})
   end
 
@@ -52,5 +52,11 @@ defmodule Scrumpoker.GameServer do
   @impl true
   def handle_call(:player_list, _from, %Game{} = game) do
     {:reply, game.players, game}
+  end
+
+  @impl true
+  def handle_call({:player_leave, player}, _from, %Game{} = game) do
+    updated_game = Game.player_leave(game, player)
+    {:reply, updated_game, updated_game}
   end
 end
