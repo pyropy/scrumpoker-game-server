@@ -1,5 +1,5 @@
 defmodule Scrumpoker.Player do
-  defstruct id: "", vote: nil
+  defstruct id: "", name: "", vote: nil
 
   alias Scrumpoker.Player
 
@@ -11,7 +11,7 @@ defmodule Scrumpoker.Player do
   ## Examples
 
       iex> Scrumpoker.Player.new("test")
-      %Scrumpoker.Player{id: "test", vote: nil}
+      %Scrumpoker.Player{id: "test", vote: nil, name: ""}
   """
   def new(id) do
     %Player{id: id}
@@ -24,7 +24,7 @@ defmodule Scrumpoker.Player do
 
       iex> player = %Scrumpoker.Player{id: "test"}
       iex> Scrumpoker.Player.cast_vote(player, 3)
-      %Scrumpoker.Player{id: "test", vote: 3}
+      %Scrumpoker.Player{id: "test", vote: 3, name: ""}
   """
   def cast_vote(%Player{} = player, vote) when is_number(vote) do
     %Player{player | vote: vote}

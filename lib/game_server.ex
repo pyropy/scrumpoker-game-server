@@ -1,46 +1,36 @@
 defmodule Scrumpoker.GameServer do
-  # TODO Srdjan: Implement player leave
   use GenServer
 
   alias Scrumpoker.{Game, Player}
 
-  def start_link({game_id})
-      when is_binary(game_id) do
-    IO.puts(__MODULE__)
-    game_id = String.to_atom(game_id)
-    start_link({game_id})
+  def start_link(options) do
+    GenServer.start_link(__MODULE__, options, name: via_tuple(options[:id]))
   end
 
-  def start_link({game_id})
-      when is_atom(game_id) do
-    GenServer.start_link(__MODULE__, {game_id}, name: game_id)
+  def player_join(game_id, %Player{} = player) do
+    GenServer.call(via_tuple(game_id), {:player_join, player})
   end
 
-  def player_join(game_id, %Player{} = player)
-      when is_binary(game_id) do
-    String.to_atom(game_id)
-    |> player_join(player)
+  def player_list(game_id) do
+    GenServer.call(via_tuple(game_id), :player_list)
   end
 
-  def player_join(game_id, %Player{} = player)
-      when is_atom(game_id) do
-    GenServer.call(game_id, {:player_join, player})
+def player_vote(game_id, player, vote) do
+    GenServer.call(via_tuple(game_id), {:player_vote, player, vote})
   end
 
-  def player_list(game_id) when is_binary(game_id) do
-    game_id
-    |> String.to_atom()
-    |> player_list()
-  end
-
-  def player_list(game_id) when is_atom(game_id) do
-    game_id
-    |> GenServer.call(:player_list)
+  defp via_tuple(game_id) do
+    {:via, Registry, {Scrumpoker.GameRegistry, game_id}}
   end
 
   @impl true
-  def init({game_id}) do
-    {:ok, Game.new(game_id)}
+  def init(options) do
+    {:ok, %Game{id: options[:id]}}
+  end
+
+  @impl true
+  def handle_call(:game_state, _from, %Game{} = game) do
+    {:reply, game, game}
   end
 
   @impl true
@@ -50,13 +40,14 @@ defmodule Scrumpoker.GameServer do
   end
 
   @impl true
-  def handle_call(:player_list, _from, %Game{} = game) do
-    {:reply, game.players, game}
+  def handle_call({:player_leave, player}, _from, %Game{} = game) do
+    updated_game = Game.player_leave(game, player)
+    {:reply, updated_game, updated_game}
   end
 
   @impl true
-  def handle_call({:player_leave, player}, _from, %Game{} = game) do
-    updated_game = Game.player_leave(game, player)
+  def handle_call({:player_vote, player, vote}, _from, %Game{} = game) do
+    updated_game = Game.update_player(game, %Player{player | vote: vote})
     {:reply, updated_game, updated_game}
   end
 end
