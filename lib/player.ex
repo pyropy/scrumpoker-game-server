@@ -17,6 +17,10 @@ defmodule Scrumpoker.Player do
     %Player{id: id}
   end
 
+  def clear_vote(player) do
+    %Player{player | vote: nil}
+  end
+
   @doc """
   Casts player vote to player struct.
 
@@ -26,7 +30,22 @@ defmodule Scrumpoker.Player do
       iex> Scrumpoker.Player.cast_vote(player, 3)
       %Scrumpoker.Player{id: "test", vote: 3, name: ""}
   """
-  def cast_vote(%Player{} = player, vote) when is_number(vote) do
-    %Player{player | vote: vote}
+  def cast_vote(%Player{} = player, vote) do
+    converted_vote = vote |> convert_vote()
+    %Player{player | vote: converted_vote}
+  end
+
+  defp convert_vote(vote) when is_number(vote) do
+    vote
+  end
+
+
+  defp convert_vote(vote) do
+    case vote do
+      "☕" ->
+        vote
+      _ ->
+        String.to_integer(vote)
+    end
   end
 end

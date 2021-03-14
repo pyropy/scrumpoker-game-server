@@ -1,10 +1,12 @@
 defmodule Scrumpoker.Game do
   @moduledoc """
   Holds main server (business) logic.
+
+  # TODO: Change players from list to map
   """
   @enforce_keys [:id]
-  defstruct id: "", players: [], password: nil
-    alias Scrumpoker.{Game, Player}
+  defstruct id: "", players: [], password: nil, topic_name: nil, vote_reveal: false
+  alias Scrumpoker.{Game, Player}
 
   @doc """
   Creates new Game instance with given id.
@@ -113,9 +115,15 @@ defmodule Scrumpoker.Game do
     !!Enum.find(players, fn in_game_player -> player.id == in_game_player.id end)
   end
 
+  def player_vote(%Player{} = player, %Game{} = game, vote) do
+    player_with_vote = Player.cast_vote(player, vote)
+    Game.update_player(game, player_with_vote)
+        |> Game.reveal_votes_if_round_is_over()
+  end
+
   @doc """
   Updates existing player in the game.
-  #
+
   ## Examples
 
       iex> player = %Scrumpoker.Player{id: "test-player"}
@@ -155,6 +163,73 @@ defmodule Scrumpoker.Game do
     %Game{game | players: filtered_players}
   end
 
+  @doc """
+  Updates game topic name.
+
+  ## Examples
+
+      iex> player = %Scrumpoker.Player{id: "test-player"}
+      iex> game = %Scrumpoker.Game{id: "test", players: [], topic_name: "Old Topic Name"}
+      iex> Scrumpoker.Game.update_topic(game, player, "New Topic Name")
+      %Scrumpoker.Game{id: "test", players: [], topic_name: "New Topic Name"}
+  """
+  def update_topic(%Game{} = game, %Player{} = _player, new_topic_name) do
+    # TODO: Add checks to see if user is admin / moderator
+    %Game{game | topic_name: new_topic_name}
+  end
+
+  @doc """
+  Sets vote reveal to given value.
+
+  ## Examples
+
+      iex> game = %Scrumpoker.Game{id: "test", players: []}
+      iex> Scrumpoker.Game.vote_reveal(game, true)
+      %Scrumpoker.Game{id: "test", players: [], vote_reveal: true}
+  """
+  def vote_reveal(%Game{} = game, is_revealed?) do
+    %Game{game | vote_reveal: is_revealed?}
+  end
+
+  @doc """
+  Sets vote reveal to given value if player is admin.
+
+  ## Examples
+
+      iex> player = %Scrumpoker.Player{id: "test-player"}
+      iex> game = %Scrumpoker.Game{id: "test", players: []}
+      iex> Scrumpoker.Game.vote_reveal(game, player, true)
+      %Scrumpoker.Game{id: "test", players: [], vote_reveal: true}
+  """
+  def vote_reveal(%Game{} = game, %Player{} = _player, is_revealed?) do
+    # TODO: Add checks to see if user is admin / moderator
+    %Game{game | vote_reveal: is_revealed?}
+  end
+
+  def reveal_votes_if_round_is_over(game) do
+    case round_is_over?(game) do
+      true ->
+        vote_reveal(game, true)
+      _ -> game
+    end
+  end
+
+  @doc """
+  Resets votes for every player in the game.
+
+  ## Examples
+
+      # iex> player_with_vote = %Scrumpoker.Player{id: "test-player", vote: 10}
+      # iex> player_without_vote = %Scrumpoker.Player{id: "test-player", vote: nil}
+      # iex> game = %Scrumpoker.Game{id: "test", players: [player_with_vote]}
+      # iex> Scrumpoker.Game.reset_votes(game)
+      # %Scrumpoker.Game{id: "test", players: [player_without_vote]}
+  """
+  def reset_votes(game) do
+    updated_players = game.players |> Enum.map(&Player.clear_vote/1)
+    %Game{game | players: updated_players, vote_reveal: false}
+  end
+
   defp get_player_index_in_players_list(players, player) do
     {_player, index} = Enum.with_index(players)
     |> Enum.find(fn {in_game_player, _index} -> player.id == in_game_player.id end)
@@ -164,5 +239,10 @@ defmodule Scrumpoker.Game do
 
   defp filter_list_nil_and_false_values(some_list) do
     Enum.filter(some_list, & &1)
+  end
+
+  # Round is over if all players have voted
+  defp round_is_over?(game) do
+    Enum.all?(game.players, fn player -> player.vote != nil end)
   end
 end
